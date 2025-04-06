@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Cuánto sabes sobre energía?</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #c3f0ca, #f0f8ff);
+      margin: 0;
+      padding: 0;
+    }
+    .pantalla-inicio, .pantalla-juego, .pantalla-final {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+    .visible {
+      display: block;
+    }
+    .opciones-perfil img {
+      width: 60px;
+      margin: 5px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 50%;
+    }
+    .opciones-perfil img.seleccionado {
+      border-color: #4CAF50;
+    }
+    .creditos {
+      font-size: 0.9em;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .agradecimiento {
+      margin-top: 20px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>  <div class="pantalla-inicio visible" id="pantallaInicio">
+    <div class="creditos">
+      Hecho por alumnos del 1ro BCCB (Bachillerato Científico en Ciencias Básicas)<br>
+      Colegio "San Martín de Porres"
+    </div>
+    <h1>¿Cuánto sabes sobre energía?</h1>
+    <label for="nombreJugador">Tu nombre:</label><br>
+    <input type="text" id="nombreJugador"><br><br>
+    <p>Elige tu foto de perfil:</p>
+    <div class="opciones-perfil" id="opcionesPerfil"></div>
+    <br>
+    <button onclick="iniciarJuego()">¡Empezar!</button>
+  </div>  <div class="pantalla-juego" id="pantallaJuego">
+    <h2 id="nivelTitulo">Nivel 1</h2>
+    <p id="fraseAnimal">Hola, soy tu guía del nivel 1</p>
+    <p id="pregunta">¿Qué tipo de energía es "Sol"?</p>
+    <div>
+      <button onclick="responder('renovable')">Renovable</button>
+      <button onclick="responder('no_renovable')">No Renovable</button>
+    </div>
+    <p id="puntaje">Puntos: 0</p>
+  </div>  <div class="pantalla-final" id="pantallaFinal">
+    <h2>¡Juego terminado!</h2>
+    <p id="mensajeFinal"></p>
+    <h3>Ranking</h3>
+    <ul id="ranking"></ul>
+    <div class="creditos">
+      Hecho por alumnos del 1ro BCCB (Bachillerato Científico en Ciencias Básicas)<br>
+      Colegio "San Martín de Porres"
+    </div>
+    <div class="agradecimiento">
+      ¡Gracias por jugar y aprender con nosotros!
+    </div>
+  </div><script>
+const perfilContenedor = document.getElementById("opcionesPerfil");
+let perfilSeleccionado = null;
+for (let i = 1; i <= 30; i++) {
+  const img = document.createElement("img");
+  img.src = `https://api.dicebear.com/7.x/thumbs/svg?seed=${i}`; // Avatares automáticos
+  img.addEventListener("click", () => {
+    document.querySelectorAll('.opciones-perfil img').forEach(el => el.classList.remove('seleccionado'));
+    img.classList.add("seleccionado");
+    perfilSeleccionado = img.src;
+  });
+  perfilContenedor.appendChild(img);
+}
+
+let jugador = { nombre: "", perfil: "", puntos: 0 };
+let preguntaActual = 0;
+const preguntasPorNivel = 10;
+let nivel = 1;
+const totalNiveles = 5;
+const preguntas = [
+  { texto: "Sol", tipo: "renovable" },
+  { texto: "Carbón", tipo: "no_renovable" },
+  { texto: "Viento", tipo: "renovable" },
+  { texto: "Petróleo", tipo: "no_renovable" },
+  { texto: "Agua", tipo: "renovable" },
+  { texto: "Gas natural", tipo: "no_renovable" },
+  { texto: "Biomasa", tipo: "renovable" },
+  { texto: "Uranio", tipo: "no_renovable" },
+  { texto: "Mareas", tipo: "renovable" },
+  { texto: "Gasolina", tipo: "no_renovable" },
+];
+
+function iniciarJuego() {
+  const nombre = document.getElementById("nombreJugador").value;
+  if (!nombre || !perfilSeleccionado) return alert("Por favor escribe tu nombre y elige una foto de perfil.");
+  jugador.nombre = nombre;
+  jugador.perfil = perfilSeleccionado;
+  document.getElementById("pantallaInicio").classList.remove("visible");
+  document.getElementById("pantallaJuego").classList.add("visible");
+  siguientePregunta();
+}
+
+function siguientePregunta() {
+  if (preguntaActual >= preguntasPorNivel) {
+    nivel++;
+    if (nivel > totalNiveles) return finalizarJuego();
+    preguntaActual = 0;
+    alert(`Nivel ${nivel}: Aquí va un dato curioso sobre energía...`);
+  }
+  document.getElementById("nivelTitulo").innerText = `Nivel ${nivel}`;
+  const pregunta = preguntas[(preguntaActual + (nivel - 1) * preguntasPorNivel) % preguntas.length];
+  document.getElementById("pregunta").innerText = `¿Qué tipo de energía es "${pregunta.texto}"?`;
+}
+
+function responder(respuesta) {
+  const pregunta = preguntas[(preguntaActual + (nivel - 1) * preguntasPorNivel) % preguntas.length];
+  if (respuesta === pregunta.tipo) jugador.puntos++;
+  preguntaActual++;
+  document.getElementById("puntaje").innerText = `Puntos: ${jugador.puntos}`;
+  siguientePregunta();
+}
+
+function finalizarJuego() {
+  document.getElementById("pantallaJuego").classList.remove("visible");
+  document.getElementById("pantallaFinal").classList.add("visible");
+  let mensaje = "";
+  if (jugador.puntos >= 45) mensaje = "¡Eres un maestro de la energía!";
+  else if (jugador.puntos >= 30) mensaje = "¡Muy bien! Conoces bastante.";
+  else if (jugador.puntos >= 15) mensaje = "¡Vas por buen camino!";
+  else mensaje = "¡Ups! Toca estudiar un poco más...";
+  document.getElementById("mensajeFinal").innerText = `${jugador.nombre}, obtuviste ${jugador.puntos}/50 puntos. ${mensaje}`;
+  actualizarRanking();
+}
+
+function actualizarRanking() {
+  const ranking = JSON.parse(localStorage.getItem("rankingEnergias") || "[]");
+  ranking.push({ nombre: jugador.nombre, perfil: jugador.perfil, puntos: jugador.puntos });
+  ranking.sort((a, b) => b.puntos - a.puntos);
+  const top = ranking.slice(0, 5);
+  localStorage.setItem("rankingEnergias", JSON.stringify(ranking));
+  const lista = document.getElementById("ranking");
+  lista.innerHTML = "";
+  top.forEach(j => {
+    const li = document.createElement("li");
+    li.innerHTML = `<img src="${j.perfil}" width="30"> ${j.nombre} - ${j.puntos} pts`;
+    lista.appendChild(li);
+  });
+}
+</script></body>
+</html>
